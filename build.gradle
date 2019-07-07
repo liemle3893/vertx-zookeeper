@@ -53,7 +53,6 @@ shadowJar {
   relocate 'io.netty', 'shadow.netty'
   relocate 'org.apache', 'shadow.apache'
   relocate 'com.google.common', 'shadow.google.common'
-  minimize()
 }
 
 test {
