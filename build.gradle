@@ -1,0 +1,131 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.1'
+  }
+}
+
+plugins {
+  id 'java-library'
+  id "com.jfrog.bintray" version "1.8.0"
+  id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+repositories {
+  jcenter()
+}
+
+ext {
+  vertxVersion = '3.7.1'
+  junitJupiterEngineVersion = '5.4.0'
+}
+
+sourceCompatibility = '1.8'
+
+dependencies {
+  compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
+  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
+  implementation "io.vertx:vertx-web:$vertxVersion"
+  // ZkCluster Manager
+  implementation "io.vertx:vertx-zookeeper:$vertxVersion"
+  implementation "io.vertx:vertx-service-discovery-backend-zookeeper:$vertxVersion"
+  implementation "io.vertx:vertx-config:${vertxVersion}"
+
+  testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:$junitJupiterEngineVersion"
+  testImplementation "org.apache.curator:curator-test:3.2.1"
+}
+
+
+shadowJar {
+  classifier = null
+  mergeServiceFiles {
+    include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+  }
+  relocate 'io.vertx', 'shadow.vertx'
+  relocate 'io.netty', 'shadow.netty'
+  relocate 'org.apache', 'shadow.apache'
+  relocate 'com.google.common', 'shadow.google.common'
+  minimize()
+}
+
+test {
+  useJUnitPlatform()
+  testLogging {
+    events 'PASSED', 'FAILED', 'SKIPPED'
+  }
+}
+
+/////// Deploy
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+def deployArtifact = new Properties()
+deployArtifact.load(new FileInputStream("$projectDir${File.separator}deploy.settings"))
+Properties bintrayProps = new Properties()
+File propFile = "${System.properties['user.home']}${File.separator}.gradle${File.separator}bintray.properties" as File
+bintrayProps.load(propFile.newDataInputStream())
+
+publishing {
+  publications {
+    shadow(MavenPublication) {
+      publication -> project.shadow.component(publication)
+    }
+    bintray(MavenPublication) {
+      from components.java
+      groupId deployArtifact.groupId
+      artifactId deployArtifact.id
+      version deployArtifact.version
+      pom.withXml {
+        def pomNode = asNode()
+        pomNode.dependencies.'*'.findAll() {
+          it.groupId.text() == 'io.vertx'
+        }.each() {
+          it.parent().remove(it)
+        }
+      }
+      artifact sourcesJar
+      artifact javadocJar
+
+    }
+  }
+}
+
+bintray {
+  user = bintrayProps.get("bintray.user")
+  key = bintrayProps.get("bintray.apikey")
+  publications = ['bintray']
+  pkg {
+    repo = 'Personal'
+    name = deployArtifact.name
+    userOrg = user
+    licenses = ['Apache-2.0']
+    vcsUrl = deployArtifact.gitUrl
+    publicDownloadNumbers = true
+    version {
+      name = deployArtifact.deployVersion
+    }
+  }
+}
+
+artifacts {
+  archives javadocJar
+  archives sourcesJar
+}
+
+

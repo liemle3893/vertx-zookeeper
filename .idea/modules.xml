@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zookeeper-service-discovery-starter.iml" filepath="$PROJECT_DIR$/.idea/modules/zookeeper-service-discovery-starter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zookeeper-service-discovery-starter_main.iml" filepath="$PROJECT_DIR$/.idea/modules/zookeeper-service-discovery-starter_main.iml" group="zookeeper-service-discovery-starter" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/zookeeper-service-discovery-starter_test.iml" filepath="$PROJECT_DIR$/.idea/modules/zookeeper-service-discovery-starter_test.iml" group="zookeeper-service-discovery-starter" />
+    </modules>
+  </component>
+</project>
