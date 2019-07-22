@@ -1,7 +1,7 @@
 siteUrl = https://github.com/liemle3893/vertx-zookeeper
 gitUrl = https://github.com/liemle3893/vertx-zookeeper.git
-version = 1.0.1
+version = 1.3
 groupId = com.liemlhd.starter
 id = vertx-zookeeper-starter
 name = vertx-zookeeper-starter
-deployVersion = 1.0.1
+deployVersion = 1.3
